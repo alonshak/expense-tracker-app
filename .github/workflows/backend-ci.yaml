@@ -1,0 +1,50 @@
+name: Backend CI - Build & Push to ECR
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - "docker/backend/**"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build backend image
+        run: |
+          docker build \
+            -t expense-tracker-backend:${{ github.sha }} \
+            -f docker/backend/Dockerfile .
+
+      - name: Tag image
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          ECR_URI=$ACCOUNT_ID.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/expense-tracker-backend
+          docker tag expense-tracker-backend:${{ github.sha }} $ECR_URI:sha-${{ github.sha }}
+          docker tag expense-tracker-backend:${{ github.sha }} $ECR_URI:latest
+
+      - name: Push image to ECR
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          ECR_URI=$ACCOUNT_ID.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/expense-tracker-backend
+          docker push $ECR_URI:sha-${{ github.sha }}
+          docker push $ECR_URI:latest
