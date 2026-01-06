@@ -33,7 +33,7 @@ jobs:
         run: |
           docker build \
             -t expense-tracker-backend:${{ github.sha }} \
-            -f docker/backend/Dockerfile .
+            -f docker/backend/Dockerfile backend
 
       - name: Tag image
         run: |
