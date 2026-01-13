@@ -1,0 +1,53 @@
+name: Frontend CI - Build & Push to ECR
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - frontend/**
+      - docker/frontend/**
+  pull_request:
+    paths:
+      - frontend/**
+      - docker/frontend/**
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  IMAGE_NAME: expense-tracker-frontend
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build image
+        run: |
+          docker build \
+            -t $IMAGE_NAME:${{ github.sha }} \
+            -f docker/frontend/Dockerfile \
+            frontend
+
+      - name: Tag & Push
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          ECR_URI=$ACCOUNT_ID.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/$IMAGE_NAME
+
+          docker tag $IMAGE_NAME:${{ github.sha }} $ECR_URI:sha-${{ github.sha }}
+          docker tag $IMAGE_NAME:${{ github.sha }} $ECR_URI:latest
+
+          docker push $ECR_URI:sha-${{ github.sha }}
+          docker push $ECR_URI:latest
