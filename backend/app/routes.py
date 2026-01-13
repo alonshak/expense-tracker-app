@@ -12,9 +12,12 @@ Base.metadata.create_all(bind=engine)
 def parse_date(s: str):
     return datetime.strptime(s, "%Y-%m-%d").date()
 
+
 @api.get("/health")
 def health():
-	return {"status": "ok"}
+    return {"status": "ok"}
+
+
 @api.post("/auth/register")
 def register():
     data = request.get_json(force=True)
@@ -29,6 +32,25 @@ def register():
         db.add(user)
         db.commit()
         return jsonify({"id": user.id, "full_name": user.full_name}), 201
+    finally:
+        db.close()
+
+
+@api.post("/auth/login")
+def login():
+    data = request.get_json(force=True)
+
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter_by(email=data["email"]).first()
+        if not user:
+            return {"error": "Invalid credentials"}, 401
+
+        # זמני – בלי hashing
+        if user.password_hash != data["password"]:
+            return {"error": "Invalid credentials"}, 401
+
+        return {"user_id": user.id}
     finally:
         db.close()
 
@@ -51,6 +73,7 @@ def create_expense():
         return jsonify({"status": "ok"}), 201
     finally:
         db.close()
+
 
 @api.get("/expenses")
 def list_expenses():

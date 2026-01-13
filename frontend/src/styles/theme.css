@@ -1,19 +1,20 @@
 :root {
-  /* ===== Colors ===== */
-  --bg-main: #F7F5EF;
-  --bg-card: #FFFFFF;
-  --bg-soft: #F1EFE8;
+  /* ===== Backgrounds ===== */
+  --bg-main: #e9dfc6;        /* off-white לכל האתר */
+  --bg-card: #EFECE8;        /* אפור בהיר לבלוקים */
+  --bg-soft: #ededed;
 
-  --border-soft: #E5E3DC;
+  /* ===== Borders ===== */
+  --border-soft: #e0e0e0;
 
-  --text-main: #3F3F3F;
-  --text-muted: #7A7A7A;
-  --text-light: #9CA3AF;
+  /* ===== Text ===== */
+  --text-main: #2f2f2f;
+  --text-muted: #6b6b6b;
+  --text-light: #9ca3af;
 
-  --primary: #6B7280;
+  /* ===== Accent ===== */
+  --primary: #6b7280;
   --primary-hover: #525866;
-
-  --accent: #A8A29E;
 }
 
 /* ===== Reset ===== */
@@ -34,7 +35,7 @@ h1, h2, h3 {
   color: var(--text-main);
 }
 
-/* ===== Cards ===== */
+/* ===== Cards (Overview / Expenses) ===== */
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border-soft);
@@ -43,28 +44,16 @@ h1, h2, h3 {
 }
 
 /* ===== Buttons ===== */
-.btn-primary {
-  background: var(--primary);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  padding: 10px 18px;
-  font-size: 14px;
+button {
+  background: white;
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
 }
 
-.btn-primary:hover {
-  background: var(--primary-hover);
-}
-
-.btn-ghost {
-  background: transparent;
-  border: 1px solid var(--border-soft);
-  color: var(--text-main);
-  border-radius: 12px;
-  padding: 8px 16px;
-  cursor: pointer;
+button:hover {
+  background: #fafafa;
 }
 
 /* ===== Inputs ===== */
@@ -75,6 +64,7 @@ select {
   border-radius: 12px;
   border: 1px solid var(--border-soft);
   font-size: 14px;
+  background: white;
 }
 
 input:focus,

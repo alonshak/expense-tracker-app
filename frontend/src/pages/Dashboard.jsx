@@ -1,18 +1,14 @@
 import { useEffect, useState } from "react";
 import { getExpenses, getOverview } from "../api";
 
-import Header from "../components/Header";
-import MonthNavigator from "../components/MonthNavigator";
 import Overview from "../components/Overview";
 import ExpenseList from "../components/ExpenseList";
 import AddExpenseModal from "../components/AddExpenseModal";
 import Footer from "../components/Footer";
 
-
-export default function App() {
+export default function Dashboard() {
   const now = new Date();
 
-  // month 0-11
   const [month, setMonth] = useState(now.getMonth());
   const [year, setYear] = useState(now.getFullYear());
 
@@ -24,6 +20,11 @@ export default function App() {
   const canGoNext =
     year < now.getFullYear() ||
     (year === now.getFullYear() && month < now.getMonth());
+
+  function logout() {
+    localStorage.removeItem("user_id");
+    window.location.href = "/login";
+  }
 
   async function load() {
     const [e, o] = await Promise.all([
@@ -59,37 +60,49 @@ export default function App() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f3f4f6", padding: 32 }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        <Header />
+  <div
+    style={{
+      minHeight: "100vh",
+      background: "#939474",
+    }}
+  >
 
-        <MonthNavigator
-          month={month}
-          year={year}
-          onPrev={goPrev}
-          onNext={goNext}
-          canGoNext={canGoNext}
+
+    <div
+      style={{
+        maxWidth: 1200,
+        margin: "0 auto",
+        padding: 32,
+      }}
+    >
+      <Overview
+        overview={overview}
+        onAdd={() => setShowModal(true)}
+        month={month}
+        year={year}
+        onPrevMonth={goPrev}
+        onNextMonth={goNext}
+        canGoNext={canGoNext}
+      />
+
+      <ExpenseList
+        expenses={expenses.slice(0, visibleCount)}
+        hasMore={visibleCount < expenses.length}
+        onLoadMore={() => setVisibleCount((v) => v + 7)}
+      />
+
+      {showModal && (
+        <AddExpenseModal
+          onClose={() => setShowModal(false)}
+          onCreated={() => {
+            setShowModal(false);
+            load();
+          }}
         />
+      )}
 
-        <Overview overview={overview} onAdd={() => setShowModal(true)} />
-
-        <ExpenseList
-          expenses={expenses.slice(0, visibleCount)}
-          hasMore={visibleCount < expenses.length}
-          onLoadMore={() => setVisibleCount((v) => v + 7)}
-        />
-
-        {showModal && (
-          <AddExpenseModal
-            onClose={() => setShowModal(false)}
-            onCreated={() => {
-              setShowModal(false);
-              load();
-            }}
-          />
-        )}
-        <Footer />
-      </div>
+      <Footer />
     </div>
-  );
+  </div>
+);
 }

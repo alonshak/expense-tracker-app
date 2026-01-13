@@ -5,7 +5,7 @@ export default function AuthLayout({ children }) {
     <div
       style={{
         minHeight: "100vh",
-        background: "#f5f5f4",
+        background: "#939474",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -16,10 +16,10 @@ export default function AuthLayout({ children }) {
         style={{
           width: "100%",
           maxWidth: 420,
-          background: "white",
-          borderRadius: 16,
+          background: "#D0C7B3",
+          borderRadius: 18,
           padding: 32,
-          border: "1px solid #e7e5e4",
+          border: "1px solid #bdb4a2",
         }}
       >
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>

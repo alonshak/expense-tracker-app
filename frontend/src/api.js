@@ -1,16 +1,13 @@
 const API_BASE = "/api";
 
-function getToken() {
-  return localStorage.getItem("token");
+function getUserId() {
+  return localStorage.getItem("user_id");
 }
 
 async function request(path, options = {}) {
   const res = await fetch(`${API_BASE}${path}`, {
     headers: {
       "Content-Type": "application/json",
-      ...(getToken() && {
-        Authorization: `Bearer ${getToken()}`,
-      }),
     },
     ...options,
   });
@@ -24,20 +21,28 @@ async function request(path, options = {}) {
 }
 
 // 🔐 AUTH
-export function login(email, password) {
-  return request("/auth/login", {
+export async function login(email, password) {
+  const res = await request("/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
+
+  // שומרים user_id אחרי login
+  localStorage.setItem("user_id", res.user_id);
+  return res;
 }
 
 // 📊 DATA
 export function getExpenses({ year, month }) {
-  return request(`/expenses?year=${year}&month=${month}`);
+  return request(
+    `/expenses?year=${year}&month=${month}&user_id=${getUserId()}`
+  );
 }
 
 export function getOverview({ year, month }) {
-  return request(`/overview?year=${year}&month=${month}`);
+  return request(
+    `/overview?year=${year}&month=${month}&user_id=${getUserId()}`
+  );
 }
 
 export function createExpense(data) {
@@ -45,6 +50,7 @@ export function createExpense(data) {
     method: "POST",
     body: JSON.stringify({
       ...data,
+      user_id: Number(getUserId()),
       amount: Number(data.amount),
     }),
   });

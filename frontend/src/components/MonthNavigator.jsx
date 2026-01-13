@@ -30,10 +30,8 @@ export default function MonthNavigator({ month, year, onPrev, onNext, canGoNext 
 const styles = {
   wrapper: {
     display: "flex",
-    justifyContent: "center",
     alignItems: "center",
     gap: 12,
-    marginBottom: 16,
   },
   label: {
     minWidth: 160,
@@ -43,10 +41,13 @@ const styles = {
     color: "#111827",
   },
   btn: {
-    border: "1px solid #e5e7eb",
+    border: "1px solid #43442b",
     borderRadius: 8,
     padding: "6px 10px",
-    background: "white",
+    background: "transparent",
+    color: "#43442b",
     fontSize: 14,
+    cursor: "pointer",
   },
 };
+

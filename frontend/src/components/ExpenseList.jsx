@@ -9,10 +9,10 @@ export default function ExpenseList({ expenses, hasMore, onLoadMore }) {
 
       <div
         style={{
-          background: "white",
+          background: "#D0C7B3",
           borderRadius: 16,
           padding: 16,
-          border: "1px solid #e5e7eb",
+          border: "1px solid #bdb4a2",
         }}
       >
         {expenses.length === 0 ? (
@@ -20,14 +20,14 @@ export default function ExpenseList({ expenses, hasMore, onLoadMore }) {
             style={{
               textAlign: "center",
               padding: 32,
-              color: "#6b7280",
+              color: "#525252",
             }}
           >
             No expenses for this month
           </div>
         ) : (
           <>
-            {expenses.map(e => (
+            {expenses.map((e) => (
               <ExpenseRow key={e.id} expense={e} />
             ))}
 
@@ -39,9 +39,11 @@ export default function ExpenseList({ expenses, hasMore, onLoadMore }) {
                   width: "100%",
                   padding: 10,
                   borderRadius: 10,
-                  border: "1px solid #e5e7eb",
-                  background: "#f9fafb",
+                  border: "1px solid #43442b",
+                  background: "transparent",
+                  color: "#43442b",
                   cursor: "pointer",
+                  fontWeight: 600,
                 }}
               >
                 Load more

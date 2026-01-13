@@ -26,7 +26,9 @@ export default function AddExpenseModal({ onClose, onCreated }) {
   return (
     <div style={overlay}>
       <form onSubmit={submit} style={modal}>
-        <h2 style={{ marginBottom: 20 }}>Add Expense</h2>
+        <h2 style={{ marginBottom: 20, color: "#43442b" }}>
+          Add Expense
+        </h2>
 
         <div style={grid}>
           <Field label="Category">
@@ -64,11 +66,7 @@ export default function AddExpenseModal({ onClose, onCreated }) {
               type="date"
               value={form.date}
               onChange={(e) => update("date", e.target.value)}
-              style={{
-                ...input,
-                appearance: "none",
-                WebkitAppearance: "none",
-              }}
+              style={input}
               required
             />
           </Field>
@@ -109,10 +107,11 @@ const overlay = {
 };
 
 const modal = {
-  background: "white",
+  background: "#D0C7B3",
   borderRadius: 18,
   padding: 28,
-  width: 400,
+  width: 420,
+  border: "1px solid #bdb4a2",
   boxShadow: "0 30px 60px rgba(0,0,0,0.25)",
 };
 
@@ -126,19 +125,19 @@ const labelStyle = {
   marginBottom: 6,
   fontSize: 13,
   fontWeight: 500,
-  color: "#374151",
+  color: "#43442b",
 };
 
 const input = {
   width: "100%",
   boxSizing: "border-box",
-  placeholder: "e.g.: 24.90",
-  padding: "12px 14px", 
-  borderRadius: 10,
-  border: "1px solid #e5e7eb",
+  padding: "12px 14px",
+  borderRadius: 12,
+  border: "1px solid #43442b",
+  background: "#bdb4a2",
   fontSize: 14,
+  color: "#43442b",
 };
-
 
 const selectInput = {
   ...input,
@@ -147,23 +146,20 @@ const selectInput = {
   MozAppearance: "none",
   paddingRight: 44,
   backgroundImage:
-    "url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQiIGhlaWdodD0iMTQiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNiA4bDQgNCA0LTQiIHN0cm9rZT0iIzZiNzI4MCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz4=')",
+    "url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQiIGhlaWdodD0iMTQiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNiA4bDQgNCA0LTQiIHN0cm9rZT0iIzQzNDQyYiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz4=')",
   backgroundRepeat: "no-repeat",
   backgroundPosition: "right 14px center",
   backgroundSize: "14px",
 };
 
-
-
-
 const primaryBtn = {
   flex: 1,
   padding: 12,
   borderRadius: 12,
-  border: "none",
-  background: "#6366f1",
-  color: "white",
-  fontWeight: 500,
+  border: "1px solid #43442b",
+  background: "transparent",
+  color: "#43442b",
+  fontWeight: 600,
   cursor: "pointer",
 };
 
@@ -171,7 +167,8 @@ const secondaryBtn = {
   flex: 1,
   padding: 12,
   borderRadius: 12,
-  border: "1px solid #e5e7eb",
-  background: "#f9fafb",
+  border: "1px solid #43442b",
+  background: "#bdb4a2",
+  color: "#43442b",
   cursor: "pointer",
 };
