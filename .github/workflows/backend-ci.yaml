@@ -1,4 +1,4 @@
-name: Backend CI - Build & Push to ECR
+name: Backend CI - Build, Push to ECR, Update GitOps
 
 on:
   push:
@@ -13,13 +13,16 @@ permissions:
 
 env:
   IMAGE_NAME: expense-tracker-backend
+  GITOPS_REPO: alonshak/expense-tracker-gitops
+  GITOPS_VALUES_FILE: apps/expense-tracker/staging/values/backend-values.yaml
 
 jobs:
-  build-and-push:
+  build-push-and-update-gitops:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout app repo
+        uses: actions/checkout@v4
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -36,13 +39,48 @@ jobs:
             -t $IMAGE_NAME:${{ github.sha }} \
             -f docker/backend/Dockerfile backend
 
-      - name: Tag & Push
+      - name: Tag & Push (immutable only)
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           ECR_URI=$ACCOUNT_ID.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/$IMAGE_NAME
+          SHORT_SHA=${GITHUB_SHA::7}
 
-          docker tag $IMAGE_NAME:${{ github.sha }} $ECR_URI:sha-${{ github.sha }}
-          docker tag $IMAGE_NAME:${{ github.sha }} $ECR_URI:latest
+          docker tag $IMAGE_NAME:${{ github.sha }} $ECR_URI:sha-$SHORT_SHA
+          docker push $ECR_URI:sha-$SHORT_SHA
 
-          docker push $ECR_URI:sha-${{ github.sha }}
-          docker push $ECR_URI:latest
+      - name: Checkout GitOps repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.GITOPS_REPO }}
+          token: ${{ secrets.GITOPS_PAT }}
+          path: gitops
+
+      - name: Update backend image tag in GitOps (staging)
+        run: |
+          SHORT_SHA=${GITHUB_SHA::7}
+          python - <<'PY'
+          import re
+          from pathlib import Path
+
+          p = Path("gitops") / "${{ env.GITOPS_VALUES_FILE }}"
+          txt = p.read_text(encoding="utf-8")
+
+          # מחליף רק את ה-tag תחת backend.image.tag
+          # מצפה למבנה: backend: ... image: ... tag: "..."
+          new = re.sub(r'(\n\s*tag:\s*")[^"]*(")', r'\1sha-' + "${GITHUB_SHA::7}" + r'\2', txt, count=1)
+
+          if new == txt:
+            raise SystemExit(f"Did not update tag in {p}. Check file format.")
+          p.write_text(new, encoding="utf-8")
+          print("Updated:", p)
+          PY
+
+      - name: Commit & push GitOps change
+        run: |
+          cd gitops
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+
+          git add "${{ env.GITOPS_VALUES_FILE }}"
+          git commit -m "staging: backend image -> sha-${GITHUB_SHA::7}" || exit 0
+          git push
