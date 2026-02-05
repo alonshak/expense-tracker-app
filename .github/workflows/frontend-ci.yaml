@@ -55,7 +55,7 @@ jobs:
           token: ${{ secrets.GITOPS_PAT }}
           path: gitops
 
-            - name: Update frontend image tag in GitOps (staging)
+      - name: Update frontend image tag in GitOps (staging)
         run: |
           python - <<'PY'
           from pathlib import Path
