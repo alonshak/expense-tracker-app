@@ -58,17 +58,50 @@ jobs:
       - name: Update frontend image tag in GitOps (staging)
         run: |
           python - <<'PY'
-          import re
           from pathlib import Path
+          import re
 
+          sha = "${GITHUB_SHA::7}"
           p = Path("gitops") / "${{ env.GITOPS_VALUES_FILE }}"
-          txt = p.read_text(encoding="utf-8")
+          lines = p.read_text(encoding="utf-8").splitlines(True)
 
-          new = re.sub(r'(\n\s*tag:\s*")[^"]*(")', r'\1sha-' + "${GITHUB_SHA::7}" + r'\2', txt, count=1)
+          out = []
+          in_frontend = False
+          in_image = False
+          changed = False
 
-          if new == txt:
-            raise SystemExit(f"Did not update tag in {p}. Check file format.")
-          p.write_text(new, encoding="utf-8")
+          for line in lines:
+            # נכנסים/יוצאים מבלוקים לפי אינדנטציה
+            if re.match(r"^frontend:\s*$", line):
+              in_frontend = True
+              in_image = False
+              out.append(line)
+              continue
+
+            if in_frontend and re.match(r"^[^\s]", line):  # יציאה מ-frontend (שורה עליונה חדשה)
+              in_frontend = False
+              in_image = False
+
+            if in_frontend and re.match(r"^\s{2}image:\s*$", line):
+              in_image = True
+              out.append(line)
+              continue
+
+            if in_image and re.match(r"^\s{2}[a-zA-Z0-9_]+:\s*", line) and not re.match(r"^\s{4}", line):
+              # יציאה מ-image אם מתחיל key חדש תחת frontend באינדנט 2
+              in_image = False
+
+            if in_frontend and in_image and re.match(r"^\s{4}tag:\s*", line):
+              out.append(f'    tag: "sha-{sha}"\n')
+              changed = True
+              continue
+
+            out.append(line)
+
+          if not changed:
+            raise SystemExit(f"Did not update frontend.image.tag in {p}. Check file structure.")
+
+          p.write_text("".join(out), encoding="utf-8")
           print("Updated:", p)
           PY
 
