@@ -60,7 +60,7 @@ export default function ExpenseForm({ onCreated }) {
         </label>
 
         <label>
-          Description (optional)
+          Description (Optional)
           <input
             value={description}
             onChange={(e) => setDescription(e.target.value)}
