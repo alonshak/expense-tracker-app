@@ -57,23 +57,26 @@ jobs:
 
       - name: Update backend image tag in GitOps (staging)
         run: |
-          SHORT_SHA=${GITHUB_SHA::7}
           python - <<'PY'
-          import re
+          import os, re
           from pathlib import Path
 
-          p = Path("gitops") / "${{ env.GITOPS_VALUES_FILE }}"
-          txt = p.read_text(encoding="utf-8")
+          sha = os.environ["GITHUB_SHA"][:7]
+          p = Path("gitops") / os.environ["GITOPS_VALUES_FILE"]
+          text = p.read_text(encoding="utf-8")
 
-          # מחליף רק את ה-tag תחת backend.image.tag
-          # מצפה למבנה: backend: ... image: ... tag: "..."
-          new = re.sub(r'(\n\s*tag:\s*")[^"]*(")', r'\1sha-' + "${GITHUB_SHA::7}" + r'\2', txt, count=1)
+          # תופס tag רק בתוך backend -> image בצורה חסינה
+          pattern = r'(?ms)(^backend:\s*\n.*?^\s*image:\s*\n.*?^\s*tag:\s*)(".*?"|\S+)'
+          new_text, n = re.subn(pattern, r'\1"sha-' + sha + r'"', text, count=1)
 
-          if new == txt:
+          if n != 1:
             raise SystemExit(f"Did not update tag in {p}. Check file format.")
-          p.write_text(new, encoding="utf-8")
+
+          p.write_text(new_text, encoding="utf-8")
           print("Updated:", p)
           PY
+        env:
+          GITOPS_VALUES_FILE: ${{ env.GITOPS_VALUES_FILE }}
 
       - name: Commit & push GitOps change
         run: |

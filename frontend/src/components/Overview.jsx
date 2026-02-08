@@ -71,7 +71,7 @@ export default function Overview({
     borderRadius: 10,
     border: "1px solid #43442b",
     background: "transparent",
-    color: "#43442b",
+    color: "#43442a",
     fontSize: 14,
     fontWeight: 600,
     cursor: "pointer",
