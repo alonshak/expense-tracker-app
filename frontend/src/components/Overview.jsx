@@ -79,7 +79,7 @@ export default function Overview({
   title="Add expense"
 >
   <span style={{ fontSize: 16, lineHeight: 1 }}>+</span>
-  Add expense
+  Add Expense
 </button>
 
       </div>
