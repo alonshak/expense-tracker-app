@@ -33,7 +33,7 @@ export default function AppHeader({ showLogout = false, onLogout }) {
           onClick={onLogout}
           style={{
             background: "transparent",
-            border: "1px solid #43442b",
+            border: "1px solid #43442c",
             color: "#43442b",
             padding: "8px 14px",
             borderRadius: 10,

@@ -58,30 +58,24 @@ jobs:
       - name: Update frontend image tag in GitOps (staging)
         run: |
           python - <<'PY'
+          import os, re
           from pathlib import Path
-          import re
 
-          sha = "${GITHUB_SHA::7}"
-          p = Path("gitops") / "${{ env.GITOPS_VALUES_FILE }}"
+          sha = os.environ["GITHUB_SHA"][:7]
+          p = Path("gitops") / "apps/expense-tracker/staging/values/frontend-values.yaml"
           text = p.read_text(encoding="utf-8")
 
-          # מחליף tag בתוך הבלוק: frontend -> image
-          pattern = r"(frontend:\s*(?:\n.*)*?\n\s*image:\s*(?:\n.*)*?\n\s*tag:\s*)\"?[^\n\"]+\"?"
-          m = re.search(pattern, text)
-          if not m:
-            raise SystemExit(f"Did not find frontend.image.tag in {p}")
+          # תופס את tag בתוך frontend -> image (בצורה חסינה)
+          pattern = r'(?ms)(^frontend:\s*\n.*?^\s*image:\s*\n.*?^\s*tag:\s*)(".*?"|\S+)'
+          new_text, n = re.subn(pattern, r'\1"sha-' + sha + r'"', text, count=1)
 
-          new_text = re.sub(
-            pattern,
-            r"\1\"sha-" + sha + r"\"",
-            text,
-            count=1
-          )
+          if n != 1:
+            raise SystemExit(f"Did not update tag in {p}. Check file format.")
 
           p.write_text(new_text, encoding="utf-8")
           print("Updated:", p)
           PY
-
+          
       - name: Commit & push GitOps change
         run: |
           cd gitops
