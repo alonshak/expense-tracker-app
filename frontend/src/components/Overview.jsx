@@ -87,7 +87,7 @@ export default function Overview({
       {/* Card */}
       <div
         style={{
-          background: "#D0C7B3",   // 👈 כאן השינוי
+          background: "#D0C7B2",   // 👈 כאן השינוי
           borderRadius: 16,
           padding: 24,
           border: "1px solid var(--border-soft)",
