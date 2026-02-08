@@ -23,6 +23,9 @@ jobs:
     steps:
       - name: Checkout app repo
         uses: actions/checkout@v4
+        with:
+          clean: false
+          fetch-depth: 1
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -54,6 +57,8 @@ jobs:
           repository: ${{ env.GITOPS_REPO }}
           token: ${{ secrets.GITOPS_PAT }}
           path: gitops
+          clean: false
+          fetch-depth: 1
 
       - name: Update frontend image tag in GitOps (staging)
         run: |
@@ -75,7 +80,7 @@ jobs:
           p.write_text(new_text, encoding="utf-8")
           print("Updated:", p)
           PY
-          
+
       - name: Commit & push GitOps change
         run: |
           cd gitops
