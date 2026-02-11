@@ -1,11 +1,9 @@
 import ExpenseRow from "./ExpenseRow";
 
-export default function ExpenseList({ expenses, hasMore, onLoadMore }) {
+export default function ExpenseList({ expenses, hasMore, onLoadMore, onEdit }) {
   return (
     <section>
-      <h2 style={{ marginBottom: 12, color: "#111827" }}>
-        Expenses
-      </h2>
+      <h2 style={{ marginBottom: 12, color: "#111827" }}>Expenses</h2>
 
       <div
         style={{
@@ -16,19 +14,13 @@ export default function ExpenseList({ expenses, hasMore, onLoadMore }) {
         }}
       >
         {expenses.length === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              padding: 32,
-              color: "#525252",
-            }}
-          >
-            No expenses for this month
+          <div style={{ textAlign: "center", padding: 32, color: "#525252" }}>
+            No expenses yet
           </div>
         ) : (
           <>
             {expenses.map((e) => (
-              <ExpenseRow key={e.id} expense={e} />
+              <ExpenseRow key={e.id} expense={e} onEdit={onEdit} />
             ))}
 
             {hasMore && (
@@ -43,7 +35,7 @@ export default function ExpenseList({ expenses, hasMore, onLoadMore }) {
                   background: "transparent",
                   color: "#43442b",
                   cursor: "pointer",
-                  fontWeight: 600,
+                  fontWeight: 700,
                 }}
               >
                 Load more

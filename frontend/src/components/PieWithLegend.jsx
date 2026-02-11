@@ -6,13 +6,13 @@ import {
 } from "recharts";
 
 const COLORS = [
- "#87756a",
-"#56453a",
-"#553d2c",
-"#3f2813",
-"#0f0704",
-
+  "#C08A5B", // warm tan
+  "#8B6F5A", // taupe
+  "#6E7D5B", // sage
+  "#4B5D73", // slate blue
+  "#2F2A26", // charcoal
 ];
+
 
 function CustomTooltip({ active, payload }) {
   if (!active || !payload || !payload.length) return null;
@@ -33,7 +33,7 @@ function CustomTooltip({ active, payload }) {
       <div style={{ fontWeight: 600, marginBottom: 2 }}>
         {d.category}
       </div>
-      <div>₪{d.spent}</div>
+      <div>₪{Math.round(Number(d.spent) || 0).toLocaleString("en-US")}</div>
       <div style={{ color: "#6b7280" }}>
         {(d.percent * 100).toFixed(1)}%
       </div>
@@ -105,7 +105,7 @@ export default function PieWithLegend({ data }) {
             </div>
 
             <div>
-              ₪{d.spent} · {(d.percent * 100).toFixed(1)}%
+              ₪{Math.round(Number(d.spent) || 0).toLocaleString("en-US")} · {(d.percent * 100).toFixed(1)}%
             </div>
           </div>
         ))}

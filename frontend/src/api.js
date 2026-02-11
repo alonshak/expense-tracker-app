@@ -27,22 +27,22 @@ export async function login(email, password) {
     body: JSON.stringify({ email, password }),
   });
 
-  // שומרים user_id אחרי login
   localStorage.setItem("user_id", res.user_id);
   return res;
 }
 
 // 📊 DATA
-export function getExpenses({ year, month }) {
-  return request(
-    `/expenses?year=${year}&month=${month}&user_id=${getUserId()}`
-  );
+// ✅ ALL expenses, newest first (backend supports limit/offset)
+export function getExpenses({ limit = 200, offset = 0 } = {}) {
+  return request(`/expenses?user_id=${getUserId()}&limit=${limit}&offset=${offset}`);
 }
 
 export function getOverview({ year, month }) {
-  return request(
-    `/overview?year=${year}&month=${month}&user_id=${getUserId()}`
-  );
+  return request(`/overview?year=${year}&month=${month}&user_id=${getUserId()}`);
+}
+
+export function getYearlyMonthsOverview({ year }) {
+  return request(`/overview/yearly/months?year=${year}&user_id=${getUserId()}`);
 }
 
 export function createExpense(data) {
@@ -53,5 +53,22 @@ export function createExpense(data) {
       user_id: Number(getUserId()),
       amount: Number(data.amount),
     }),
+  });
+}
+
+export function updateExpense(id, data) {
+  return request(`/expenses/${id}`, {
+    method: "PUT",
+    body: JSON.stringify({
+      ...data,
+      user_id: Number(getUserId()),
+      amount: Number(data.amount),
+    }),
+  });
+}
+
+export function deleteExpense(id) {
+  return request(`/expenses/${id}?user_id=${getUserId()}`, {
+    method: "DELETE",
   });
 }

@@ -1,16 +1,14 @@
 import { useState } from "react";
-import { createExpense } from "../api";
+import { updateExpense, deleteExpense } from "../api";
 
-const CATEGORIES = ["Food", "Transport", "Bills", "Shopping", "Other"];
+const CATEGORIES = ["Food", "Transport", "Bills", "Shopping", "Health", "Other"];
 
-export default function AddExpenseModal({ onClose, onCreated }) {
-  const today = new Date().toISOString().slice(0, 10);
-
+export default function EditExpenseModal({ expense, onClose, onSaved, onDeleted }) {
   const [form, setForm] = useState({
-    category: "Food",
-    amount: "",
-    description: "",
-    date: today,
+    category: expense.category || "Food",
+    amount: String(expense.amount ?? ""),
+    description: expense.description || "",
+    date: expense.date?.slice(0, 10) || new Date().toISOString().slice(0, 10),
   });
 
   const [loading, setLoading] = useState(false);
@@ -20,26 +18,40 @@ export default function AddExpenseModal({ onClose, onCreated }) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  async function submit(e) {
+  async function save(e) {
     e.preventDefault();
-    if (loading) return;
+    setError("");
+    setLoading(true);
+    try {
+      await updateExpense(expense.id, form);
+      onSaved?.();
+    } catch (err) {
+      setError(err.message || "Save failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function remove() {
+    const ok = window.confirm("Delete this expense?");
+    if (!ok) return;
 
     setError("");
     setLoading(true);
-
     try {
-      await createExpense(form);
-      onCreated();
+      await deleteExpense(expense.id);
+      onDeleted?.();
     } catch (err) {
-      setError(err?.message || "Failed to save expense");
+      setError(err.message || "Delete failed");
+    } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div style={overlay} onClick={loading ? undefined : onClose}>
-      <form onSubmit={submit} style={modal} onClick={(e) => e.stopPropagation()}>
-        <h2 style={{ marginBottom: 20, color: "#43442b" }}>Add Expense</h2>
+    <div style={overlay}>
+      <form onSubmit={save} style={modal}>
+        <h2 style={{ marginBottom: 20, color: "#43442b" }}>Edit Expense</h2>
 
         <div style={grid}>
           <Field label="Category">
@@ -47,7 +59,6 @@ export default function AddExpenseModal({ onClose, onCreated }) {
               value={form.category}
               onChange={(e) => update("category", e.target.value)}
               style={selectInput}
-              disabled={loading}
             >
               {CATEGORIES.map((c) => (
                 <option key={c}>{c}</option>
@@ -58,13 +69,10 @@ export default function AddExpenseModal({ onClose, onCreated }) {
           <Field label="Amount">
             <input
               type="number"
-              step="0.01"
-              min="0"
               value={form.amount}
               onChange={(e) => update("amount", e.target.value)}
               style={input}
               required
-              disabled={loading}
             />
           </Field>
 
@@ -73,7 +81,6 @@ export default function AddExpenseModal({ onClose, onCreated }) {
               value={form.description}
               onChange={(e) => update("description", e.target.value)}
               style={input}
-              disabled={loading}
             />
           </Field>
 
@@ -84,34 +91,30 @@ export default function AddExpenseModal({ onClose, onCreated }) {
               onChange={(e) => update("date", e.target.value)}
               style={input}
               required
-              disabled={loading}
             />
           </Field>
         </div>
 
-        {error && (
-          <div style={{ marginTop: 14, color: "#7f1d1d", fontWeight: 600 }}>
-            {error}
-          </div>
-        )}
+        {error && <div style={{ marginTop: 12, color: "#7f1d1d" }}>{error}</div>}
 
         <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
-          <button type="submit" style={primaryBtn} disabled={loading}>
+          <button type="submit" disabled={loading} style={primaryBtn}>
             {loading ? "Saving..." : "Save"}
           </button>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              ...secondaryBtn,
-              opacity: loading ? 0.6 : 1,
-              cursor: loading ? "not-allowed" : "pointer",
-            }}
-            disabled={loading}
-          >
+
+          <button type="button" onClick={onClose} disabled={loading} style={secondaryBtn}>
             Cancel
           </button>
         </div>
+
+        <button
+          type="button"
+          onClick={remove}
+          disabled={loading}
+          style={dangerBtn}
+        >
+          Delete expense
+        </button>
       </form>
     </div>
   );
@@ -142,16 +145,10 @@ const modal = {
   background: "#D0C7B3",
   borderRadius: 18,
   padding: 28,
-
-  // ✅ רספונסיבי
-  width: "min(420px, calc(100vw - 32px))",
-  maxHeight: "calc(100vh - 32px)",
-  overflowY: "auto",
-
+  width: 420,
   border: "1px solid #bdb4a2",
   boxShadow: "0 30px 60px rgba(0,0,0,0.25)",
 };
-
 
 const grid = {
   display: "grid",
@@ -183,8 +180,6 @@ const selectInput = {
   WebkitAppearance: "none",
   MozAppearance: "none",
   paddingRight: 44,
-  backgroundImage:
-    "url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTQiIGhlaWdodD0iMTQiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNiA4bDQgNCA0LTQiIHN0cm9rZT0iIzQzNDQyYiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz4=')",
   backgroundRepeat: "no-repeat",
   backgroundPosition: "right 14px center",
   backgroundSize: "14px",
@@ -197,7 +192,7 @@ const primaryBtn = {
   border: "1px solid #43442b",
   background: "transparent",
   color: "#43442b",
-  fontWeight: 600,
+  fontWeight: 800,
   cursor: "pointer",
 };
 
@@ -209,4 +204,17 @@ const secondaryBtn = {
   background: "#bdb4a2",
   color: "#43442b",
   cursor: "pointer",
+  fontWeight: 800,
+};
+
+const dangerBtn = {
+  marginTop: 14,
+  width: "100%",
+  padding: 12,
+  borderRadius: 12,
+  border: "1px solid rgba(127,29,29,0.65)",
+  background: "rgba(127,29,29,0.08)",
+  color: "#7f1d1d",
+  cursor: "pointer",
+  fontWeight: 900,
 };

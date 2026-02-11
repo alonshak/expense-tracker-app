@@ -7,6 +7,8 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -15,10 +17,15 @@ services:
 
   backend:
     build:
-      context: .
-      dockerfile: docker/backend/Dockerfile
+      context: ./backend
+      dockerfile: ../docker/backend/Dockerfile
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/expenses
+      environment:
+      DATABASE_HOST: db
+      DATABASE_PORT: "5432"
+      DATABASE_NAME: expenses
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres
       FLASK_ENV: development
     ports:
       - "5000:5000"
@@ -28,11 +35,14 @@ services:
 
   frontend:
     build:
-      context: .
-      dockerfile: docker/frontend/Dockerfile
+      context: ./frontend
+      dockerfile: ../docker/frontend/Dockerfile
     environment:
       VITE_API_BASE_URL: http://localhost:5000/api
     ports:
       - "8080:80"
     depends_on:
       - backend
+
+volumes:
+  db_data:
