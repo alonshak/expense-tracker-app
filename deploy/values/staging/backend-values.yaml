@@ -1,80 +1,21 @@
-name: Backend CI - Build, Push to ECR, Update Deploy Values
+backend:
+  replicaCount: 1
 
-on:
-  push:
-    branches: [ main ]
-    paths:
-      - backend/**
-      - docker/backend/**
-      - deploy/values/staging/backend-values.yaml
+  image:
+    repository: 412353803789.dkr.ecr.us-east-1.amazonaws.com/expense-tracker-backend
+    tag: "sha-51a285e"
+    pullPolicy: IfNotPresent
 
-permissions:
-  id-token: write
-  contents: write
+  service:
+    type: ClusterIP
+    port: 5000
 
-env:
-  IMAGE_NAME: expense-tracker-backend
-  APP_VALUES_FILE: deploy/values/staging/backend-values.yaml
+  env:
+    DATABASE_HOST: postgres
+    DATABASE_PORT: "5432"
+    DATABASE_NAME: expense_db
 
-jobs:
-  build-push-and-update-values:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout app repo
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build image
-        run: |
-          docker build \
-            -t $IMAGE_NAME:${{ github.sha }} \
-            -f docker/backend/Dockerfile backend
-
-      - name: Tag & Push (immutable only)
-        run: |
-          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          ECR_URI=$ACCOUNT_ID.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/$IMAGE_NAME
-          SHORT_SHA=${GITHUB_SHA::7}
-
-          docker tag $IMAGE_NAME:${{ github.sha }} $ECR_URI:sha-$SHORT_SHA
-          docker push $ECR_URI:sha-$SHORT_SHA
-
-      - name: Update backend image tag in deploy values (staging)
-        run: |
-          python - <<'PY'
-          import os, re
-          from pathlib import Path
-
-          sha = os.environ["GITHUB_SHA"][:7]
-          p = Path(os.environ["APP_VALUES_FILE"])
-          text = p.read_text(encoding="utf-8")
-
-          pattern = r'(?ms)(^backend:\s*\n.*?^\s*image:\s*\n.*?^\s*tag:\s*)(".*?"|\S+)'
-          new_text, n = re.subn(pattern, r'\1"sha-' + sha + r'"', text, count=1)
-
-          if n != 1:
-            raise SystemExit(f"Did not update tag in {p}. Check file format.")
-
-          p.write_text(new_text, encoding="utf-8")
-          print("Updated:", p)
-          PY
-        env:
-          APP_VALUES_FILE: ${{ env.APP_VALUES_FILE }}
-
-      - name: Commit & push values change
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@users.noreply.github.com"
-
-          git add "${{ env.APP_VALUES_FILE }}"
-          git commit -m "staging: backend image -> sha-${GITHUB_SHA::7}" || exit 0
-          git push
+  dbSecret:
+    name: expense-tracker-db
+    userKey: DATABASE_USER
+    passwordKey: DATABASE_PASSWORD
