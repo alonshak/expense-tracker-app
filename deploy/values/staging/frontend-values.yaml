@@ -1,0 +1,23 @@
+frontend:
+  replicaCount: 1
+
+  image:
+    repository: 412353803789.dkr.ecr.us-east-1.amazonaws.com/expense-tracker-frontend
+    tag: "sha-51a285e"
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  ingress:
+    enabled: true
+    className: nginx
+    host: app.al-shak.online
+    path: /
+    pathType: Prefix
+    tlsEnabled: true
+    clusterIssuer: letsencrypt-prod
+    tlsSecretName: frontend-tls
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod

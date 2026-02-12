@@ -1,0 +1,20 @@
+replicaCount: 1
+
+image:
+  repository: backend
+  tag: latest
+
+service:
+  type: ClusterIP
+  port: 5000
+
+env:
+  DATABASE_URL: ""
+  DATABASE_HOST: "postgres"
+  DATABASE_PORT: "5432"
+  DATABASE_NAME: "expense_db"
+
+dbSecret:
+  name: expense-tracker-db
+  userKey: DATABASE_USER
+  passwordKey: DATABASE_PASSWORD

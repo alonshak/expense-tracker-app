@@ -1,0 +1,21 @@
+backend:
+  replicaCount: 1
+
+  image:
+    repository: 412353803789.dkr.ecr.us-east-1.amazonaws.com/expense-tracker-backend
+    tag: "sha-51a285e"
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 5000
+
+  env:
+    DATABASE_HOST: postgres
+    DATABASE_PORT: "5432"
+    DATABASE_NAME: expense_db
+
+  dbSecret:
+    name: expense-tracker-db
+    userKey: DATABASE_USER
+    passwordKey: DATABASE_PASSWORD
