@@ -9,7 +9,7 @@ export default function AppHeader({ showLogout = false, onLogout }) {
         zIndex: 100,
         width: "100%",
         height: 64,
-        background: "#D0C7B3",
+        background: "#D0C7B2",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",

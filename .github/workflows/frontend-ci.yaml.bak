@@ -1,28 +1,31 @@
-name: Backend CI - Build, Push to ECR, Update Deploy Values
+name: Frontend CI - Build, Push to ECR, Update GitOps
 
 on:
   push:
     branches: [ main ]
     paths:
-      - backend/**
-      - docker/backend/**
-      - deploy/values/staging/backend-values.yaml
+      - frontend/**
+      - docker/frontend/**
 
 permissions:
   id-token: write
-  contents: write
+  contents: read
 
 env:
-  IMAGE_NAME: expense-tracker-backend
-  APP_VALUES_FILE: deploy/values/staging/backend-values.yaml
+  IMAGE_NAME: expense-tracker-frontend
+  GITOPS_REPO: alonshak/expense-tracker-gitops
+  GITOPS_VALUES_FILE: apps/expense-tracker/staging/values/frontend-values.yaml
 
 jobs:
-  build-push-and-update-values:
+  build-push-and-update-gitops:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout app repo
         uses: actions/checkout@v4
+        with:
+          clean: false
+          fetch-depth: 1
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -37,7 +40,7 @@ jobs:
         run: |
           docker build \
             -t $IMAGE_NAME:${{ github.sha }} \
-            -f docker/backend/Dockerfile backend
+            -f docker/frontend/Dockerfile frontend
 
       - name: Tag & Push (immutable only)
         run: |
@@ -48,17 +51,27 @@ jobs:
           docker tag $IMAGE_NAME:${{ github.sha }} $ECR_URI:sha-$SHORT_SHA
           docker push $ECR_URI:sha-$SHORT_SHA
 
-      - name: Update backend image tag in deploy values (staging)
+      - name: Checkout GitOps repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.GITOPS_REPO }}
+          token: ${{ secrets.GITOPS_PAT }}
+          path: gitops
+          clean: false
+          fetch-depth: 1
+
+      - name: Update frontend image tag in GitOps (staging)
         run: |
           python - <<'PY'
           import os, re
           from pathlib import Path
 
           sha = os.environ["GITHUB_SHA"][:7]
-          p = Path(os.environ["APP_VALUES_FILE"])
+          p = Path("gitops") / "apps/expense-tracker/staging/values/frontend-values.yaml"
           text = p.read_text(encoding="utf-8")
 
-          pattern = r'(?ms)(^backend:\s*\n.*?^\s*image:\s*\n.*?^\s*tag:\s*)(".*?"|\S+)'
+          # תופס את tag בתוך frontend -> image (בצורה חסינה)
+          pattern = r'(?ms)(^frontend:\s*\n.*?^\s*image:\s*\n.*?^\s*tag:\s*)(".*?"|\S+)'
           new_text, n = re.subn(pattern, r'\1"sha-' + sha + r'"', text, count=1)
 
           if n != 1:
@@ -67,14 +80,13 @@ jobs:
           p.write_text(new_text, encoding="utf-8")
           print("Updated:", p)
           PY
-        env:
-          APP_VALUES_FILE: ${{ env.APP_VALUES_FILE }}
 
-      - name: Commit & push values change
+      - name: Commit & push GitOps change
         run: |
+          cd gitops
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
 
-          git add "${{ env.APP_VALUES_FILE }}"
-          git commit -m "staging: backend image -> sha-${GITHUB_SHA::7}" || exit 0
+          git add "${{ env.GITOPS_VALUES_FILE }}"
+          git commit -m "staging: frontend image -> sha-${GITHUB_SHA::7}" || exit 0
           git push

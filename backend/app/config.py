@@ -12,3 +12,4 @@ class Config:
     DATABASE_URL = f"postgresql://{DATABASE_USER}:{DATABASE_PASSWORD}@{DATABASE_HOST}:{DATABASE_PORT}/{DATABASE_NAME}"
     
     FLASK_ENV = os.getenv("FLASK_ENV", "production")
+
