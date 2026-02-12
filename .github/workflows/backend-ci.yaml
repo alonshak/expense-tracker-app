@@ -1,4 +1,4 @@
-name: Backend CI - Build, Push to ECR, Update GitOps
+name: Backend CI - Build, Push to ECR, Update Deploy Values
 
 on:
   push:
@@ -6,18 +6,18 @@ on:
     paths:
       - backend/**
       - docker/backend/**
+      - deploy/values/staging/backend-values.yaml
 
 permissions:
   id-token: write
-  contents: read
+  contents: write
 
 env:
   IMAGE_NAME: expense-tracker-backend
-  GITOPS_REPO: alonshak/expense-tracker-gitops
-  GITOPS_VALUES_FILE: apps/expense-tracker/staging/values/backend-values.yaml
+  APP_VALUES_FILE: deploy/values/staging/backend-values.yaml
 
 jobs:
-  build-push-and-update-gitops:
+  build-push-and-update-values:
     runs-on: ubuntu-latest
 
     steps:
@@ -48,24 +48,16 @@ jobs:
           docker tag $IMAGE_NAME:${{ github.sha }} $ECR_URI:sha-$SHORT_SHA
           docker push $ECR_URI:sha-$SHORT_SHA
 
-      - name: Checkout GitOps repo
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ env.GITOPS_REPO }}
-          token: ${{ secrets.GITOPS_PAT }}
-          path: gitops
-
-      - name: Update backend image tag in GitOps (staging)
+      - name: Update backend image tag in deploy values (staging)
         run: |
           python - <<'PY'
           import os, re
           from pathlib import Path
 
           sha = os.environ["GITHUB_SHA"][:7]
-          p = Path("gitops") / os.environ["GITOPS_VALUES_FILE"]
+          p = Path(os.environ["APP_VALUES_FILE"])
           text = p.read_text(encoding="utf-8")
 
-          # תופס tag רק בתוך backend -> image בצורה חסינה
           pattern = r'(?ms)(^backend:\s*\n.*?^\s*image:\s*\n.*?^\s*tag:\s*)(".*?"|\S+)'
           new_text, n = re.subn(pattern, r'\1"sha-' + sha + r'"', text, count=1)
 
@@ -76,14 +68,13 @@ jobs:
           print("Updated:", p)
           PY
         env:
-          GITOPS_VALUES_FILE: ${{ env.GITOPS_VALUES_FILE }}
+          APP_VALUES_FILE: ${{ env.APP_VALUES_FILE }}
 
-      - name: Commit & push GitOps change
+      - name: Commit & push values change
         run: |
-          cd gitops
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
 
-          git add "${{ env.GITOPS_VALUES_FILE }}"
+          git add "${{ env.APP_VALUES_FILE }}"
           git commit -m "staging: backend image -> sha-${GITHUB_SHA::7}" || exit 0
           git push
