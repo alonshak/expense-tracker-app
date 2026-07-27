@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import Blueprint, jsonify, request
 from sqlalchemy import func
+from werkzeug.security import generate_password_hash, check_password_hash
 from .db import SessionLocal, engine, Base
 from .models import User, Expense, Budget
 
@@ -26,7 +27,7 @@ def register():
     try:
         user = User(
             email=data["email"],
-            password_hash=data["password"],  # hashing later
+            password_hash=generate_password_hash(data["password"]),
             full_name=data["full_name"],
         )
         db.add(user)
@@ -46,7 +47,7 @@ def login():
         if not user:
             return {"error": "Invalid credentials"}, 401
 
-        if user.password_hash != data["password"]:
+        if not check_password_hash(user.password_hash, data["password"]):
             return {"error": "Invalid credentials"}, 401
 
         return {"user_id": user.id}
