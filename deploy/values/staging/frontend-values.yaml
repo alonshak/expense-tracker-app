@@ -2,7 +2,7 @@ frontend:
   replicaCount: 1
 
   image:
-    repository: 412353803789.dkr.ecr.us-east-1.amazonaws.com/expense-tracker-frontend
+    repository: 227493789664.dkr.ecr.us-east-1.amazonaws.com/expense-tracker-frontend
     tag: "sha-d414fb2"
     pullPolicy: IfNotPresent
 
@@ -13,7 +13,7 @@ frontend:
   ingress:
     enabled: true
     className: nginx
-    host: app.al-shak.online
+    host: app.alonshak.online
     path: /
     pathType: Prefix
     tlsEnabled: true

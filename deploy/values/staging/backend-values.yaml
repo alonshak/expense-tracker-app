@@ -2,7 +2,7 @@ backend:
   replicaCount: 1
 
   image:
-    repository: 412353803789.dkr.ecr.us-east-1.amazonaws.com/expense-tracker-backend
+    repository: 227493789664.dkr.ecr.us-east-1.amazonaws.com/expense-tracker-backend
     tag: "sha-5255461"
     pullPolicy: IfNotPresent
 

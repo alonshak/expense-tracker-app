@@ -1,0 +1,33 @@
+postgres:
+  fullnameOverride: postgres
+
+  auth:
+    database: expense_db
+    existingSecret: expense-tracker-db
+    secretKeys:
+      adminPasswordKey: POSTGRES_PASSWORD
+      userPasswordKey: POSTGRES_PASSWORD
+
+  primary:
+    persistence:
+      enabled: true
+      size: 5Gi
+
+externalSecrets:
+  enabled: true
+
+  aws:
+    region: us-east-1
+    secretName: expense-tracker/production/db
+
+  targetK8sSecretName: expense-tracker-db
+
+  operator:
+    namespace: external-secrets
+    serviceAccountName: external-secrets
+
+  keys:
+    DATABASE_USER: DATABASE_USER
+    DATABASE_PASSWORD: DATABASE_PASSWORD
+    POSTGRES_USER: POSTGRES_USER
+    POSTGRES_PASSWORD: POSTGRES_PASSWORD

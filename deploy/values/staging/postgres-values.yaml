@@ -1,22 +1,22 @@
 postgres:
-  image:
-    repository: postgres
-    tag: "15"
+  # כדי שה-Service יישאר בשם "postgres" וה-backend לא יישבר
+  fullnameOverride: postgres
 
-  service:
-    port: 5432
+  auth:
+    database: expense_db
 
-  persistence:
-    enabled: true
-    size: 5Gi
+    # משתמשים ב-Secret שה-ExternalSecret שלך יוצר
+    existingSecret: expense-tracker-db
 
-  env:
-    POSTGRES_DB: expense_db
+    # אצלך המפתח הוא POSTGRES_PASSWORD
+    secretKeys:
+      adminPasswordKey: POSTGRES_PASSWORD
+      userPasswordKey: POSTGRES_PASSWORD
 
-  dbSecret:
-    name: expense-tracker-db
-    userKey: POSTGRES_USER
-    passwordKey: POSTGRES_PASSWORD
+  primary:
+    persistence:
+      enabled: true
+      size: 5Gi
 
 externalSecrets:
   enabled: true
@@ -25,7 +25,6 @@ externalSecrets:
     region: us-east-1
     secretName: expense-tracker/staging/db
 
-  # ה-Secret שייווצר בתוך ה-namespace staging
   targetK8sSecretName: expense-tracker-db
 
   operator:

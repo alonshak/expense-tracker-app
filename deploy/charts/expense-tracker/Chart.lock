@@ -5,8 +5,8 @@ dependencies:
 - name: frontend
   repository: file://../frontend
   version: 0.1.0
-- name: postgres
-  repository: file://../postgres
-  version: 0.1.0
-digest: sha256:004b81b1b36b744e3496608802aa3dd00430935f38bd3e8d4172755b0d423945
-generated: "2026-02-05T17:19:37.485459755+02:00"
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 18.2.3
+digest: sha256:5e0bdcfdd0f2896e0f10e84b86b96c5581778566229df7a140de4fdd2a3d1201
+generated: "2026-02-12T16:24:34.32458042+02:00"
