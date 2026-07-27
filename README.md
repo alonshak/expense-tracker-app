@@ -48,7 +48,7 @@ The project focuses on **DevOps architecture and delivery**, not on business fea
 
 ## 📂 Repository Structure
 
-expense-tracker-app/
+spendly-app/
 ├── backend/
 │ ├── app/
 │ │ ├── init.py
